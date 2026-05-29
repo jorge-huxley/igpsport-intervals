@@ -44,6 +44,8 @@ def build_sync_config() -> SyncConfig:
         intervals_api_key=api_key,
         max_activities=int(os.getenv("MAX_ACTIVITIES", str(cfg.max_activities))),
         download_dir=cfg.download_dir,
+        delete_after_upload=_env_bool("DELETE_AFTER_UPLOAD", cfg.delete_after_upload),
+        force_resync=_env_bool("FORCE_RESYNC", cfg.force_resync),
         list_activities=_env_bool("STEP_LIST_ACTIVITIES", cfg.step_list_activities),
         get_download_url=_env_bool("STEP_GET_DOWNLOAD_URL", cfg.step_get_download_url),
         download_fit=_env_bool("STEP_DOWNLOAD_FIT", cfg.step_download_fit),
@@ -60,8 +62,9 @@ def main() -> int:
         return 1
 
     print(
-        f"\nDone. listed={result.listed} downloaded={result.downloaded} "
-        f"uploaded={result.uploaded} failed={result.failed}"
+        f"\nDone. listed={result.listed} uploaded={result.uploaded} "
+        f"skipped={result.skipped} downloaded={result.downloaded} "
+        f"failed={result.failed}"
     )
     return 0
 

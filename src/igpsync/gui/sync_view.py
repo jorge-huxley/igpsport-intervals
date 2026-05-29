@@ -40,6 +40,7 @@ def build_sync_view(
             max_activities=config.max_activities,
             download_dir=config.download_dir,
             delete_after_upload=config.delete_after_upload,
+            force_resync=config.force_resync,
             list_activities=config.step_list_activities,
             get_download_url=config.step_get_download_url,
             download_fit=config.step_download_fit,
@@ -49,8 +50,8 @@ def build_sync_view(
         try:
             result = sync(sync_config, progress=append_log)
             append_log(
-                f"\nDone — downloaded {result.downloaded}, "
-                f"uploaded {result.uploaded}, failed {result.failed}."
+                f"\nDone — uploaded {result.uploaded}, skipped {result.skipped}, "
+                f"downloaded {result.downloaded}, failed {result.failed}."
             )
         except SyncError as exc:
             append_log(f"✗ {exc}")

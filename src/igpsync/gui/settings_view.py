@@ -54,6 +54,11 @@ def build_settings_view(
         value=config.delete_after_upload,
     )
 
+    force_resync = ft.Switch(
+        label="Force re-sync (re-download even if already on intervals.icu)",
+        value=config.force_resync,
+    )
+
     download_folder_row = ft.Row(
         spacing=8,
         vertical_alignment=ft.CrossAxisAlignment.CENTER,
@@ -121,6 +126,7 @@ def build_settings_view(
             config.max_activities = 5
             max_activities.value = "5"
         config.delete_after_upload = delete_after_upload.value
+        config.force_resync = force_resync.value
         config.step_list_activities = step_list.value
         config.step_get_download_url = step_url.value
         config.step_download_fit = step_download.value
@@ -154,6 +160,7 @@ def build_settings_view(
                     api_key,
                     max_activities,
                     delete_after_upload,
+                    force_resync,
                     download_folder_row,
                     developer_options,
                     ft.FilledButton(

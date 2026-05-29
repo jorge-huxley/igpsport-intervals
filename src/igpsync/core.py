@@ -17,6 +17,7 @@ Flow (see CLAUDE.md for the full API notes):
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Callable
 from urllib.parse import unquote
@@ -27,6 +28,15 @@ LOGIN_URL = "https://i.igpsport.com/Auth/Login"
 ACTIVITY_LIST_URL = "https://i.igpsport.com/Activity/ActivityList"
 GATEWAY = "https://prod.en.igpsport.com/service/web-gateway/web-analyze/activity"
 INTERVALS_UPLOAD_URL = "https://intervals.icu/api/v1/athlete/0/activities"
+INTERVALS_ACTIVITIES_URL = "https://intervals.icu/api/v1/athlete/0/activities"
+
+# iGPSPORT reports activity start times as "YYYY-MM-DD HH:MM:SS".
+IGP_TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+
+def external_id_for(ride_id: int) -> str:
+    """The intervals.icu external_id we assign to an iGPSPORT ride."""
+    return f"igpsport_{ride_id}"
 
 
 class SyncError(Exception):
@@ -49,6 +59,7 @@ class SyncResult:
     listed: int = 0
     downloaded: int = 0
     uploaded: int = 0
+    skipped: int = 0
     failed: int = 0
     activities: list[Activity] = field(default_factory=list)
 
@@ -139,11 +150,47 @@ def upload_to_intervals(
     with fit_path.open("rb") as f:
         resp = requests.post(
             INTERVALS_UPLOAD_URL,
-            params={"name": title, "external_id": f"igpsport_{ride_id}"},
+            params={"name": title, "external_id": external_id_for(ride_id)},
             files={"file": (fit_path.name, f, "application/octet-stream")},
             auth=("API_KEY", api_key),
         )
     return resp.status_code in (200, 201)
+
+
+def fetch_uploaded_external_ids(
+    api_key: str, oldest: date, newest: date
+) -> set[str]:
+    """Return the set of `external_id`s already on intervals.icu in a date range.
+
+    The activity list endpoint includes the `external_id` we set at upload time,
+    so we can tell which iGPSPORT rides are already present without re-downloading.
+    """
+    resp = requests.get(
+        INTERVALS_ACTIVITIES_URL,
+        params={"oldest": oldest.isoformat(), "newest": newest.isoformat()},
+        auth=("API_KEY", api_key),
+    )
+    resp.raise_for_status()
+    return {a["external_id"] for a in resp.json() if a.get("external_id")}
+
+
+def _activity_date_range(activities: list[Activity]) -> tuple[date, date]:
+    """Date window covering the activities, padded a day each side.
+
+    Falls back to a wide window if start times can't be parsed.
+    """
+    dates: list[date] = []
+    for act in activities:
+        try:
+            dates.append(datetime.strptime(act.start_time, IGP_TIME_FORMAT).date())
+        except (ValueError, TypeError):
+            continue
+
+    if not dates:
+        today = date.today()
+        return today - timedelta(days=365), today + timedelta(days=1)
+
+    return min(dates) - timedelta(days=1), max(dates) + timedelta(days=1)
 
 
 @dataclass
@@ -154,6 +201,9 @@ class SyncConfig:
     max_activities: int = 5
     download_dir: Path = Path("downloads")
     delete_after_upload: bool = True
+    # When False (default), skip activities already uploaded to intervals.icu.
+    # When True, re-download and re-upload them regardless.
+    force_resync: bool = False
     list_activities: bool = True
     get_download_url: bool = False
     download_fit: bool = False
@@ -185,10 +235,31 @@ def sync(config: SyncConfig, progress: Progress | None = None) -> SyncResult:
     if not needs_url:
         return result
 
+    # Figure out which activities are already on intervals.icu so we can skip
+    # re-downloading them. Only relevant when uploading and not forcing a resync.
+    already_uploaded: set[str] = set()
+    if config.upload_intervals and not config.force_resync and config.intervals_api_key:
+        oldest, newest = _activity_date_range(activities)
+        try:
+            already_uploaded = fetch_uploaded_external_ids(
+                config.intervals_api_key, oldest, newest
+            )
+            report(
+                f"{len(already_uploaded)} activities already on intervals.icu "
+                "in this date range."
+            )
+        except requests.RequestException as exc:
+            report(f"⚠ Could not check intervals.icu (will process all): {exc}")
+
     download_dir = Path(config.download_dir)
 
     for act in activities:
-        fit_path = download_dir / f"igpsport_{act.ride_id}.fit"
+        fit_path = download_dir / f"{external_id_for(act.ride_id)}.fit"
+
+        if external_id_for(act.ride_id) in already_uploaded:
+            report(f"↷ Skipping {act.ride_id} — already on intervals.icu.")
+            result.skipped += 1
+            continue
 
         fit_url = resolve_fit_url(session, auth_headers, act.ride_id)
         if not fit_url:
