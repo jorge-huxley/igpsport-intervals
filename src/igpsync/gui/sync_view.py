@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import threading
-
 import flet as ft
 
 from .. import config as config_module
@@ -27,6 +25,8 @@ def build_sync_view(
 
     def append_log(message: str) -> None:
         log.controls.append(ft.Text(message, size=13, selectable=True))
+        # Flush this single message to the UI immediately so the activity box
+        # fills in step by step rather than all at once when the sync ends.
         page.update()
 
     def run_sync() -> None:
@@ -69,8 +69,9 @@ def build_sync_view(
         progress.visible = True
         sync_button.disabled = True
         page.update()
-        # Run off the UI thread so the window stays responsive.
-        threading.Thread(target=run_sync, daemon=True).start()
+        # Run off the UI thread (via Flet's managed executor) so the window
+        # stays responsive and per-step updates flush to the client live.
+        page.run_thread(run_sync)
 
     sync_button.on_click = on_sync_click
 
