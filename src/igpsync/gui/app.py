@@ -25,12 +25,19 @@ def _app(page: ft.Page) -> None:
 
     body = ft.Container(expand=True, padding=20)
 
+    def _scrollable(view: ft.Control) -> ft.Control:
+        # Wrap the view so it scrolls when taller than the window instead of
+        # being clipped (e.g. the full Settings form on a short window).
+        return ft.Column([view], scroll=ft.ScrollMode.AUTO, expand=True)
+
     def show_sync() -> None:
-        body.content = build_sync_view(page, config, store)
+        body.content = _scrollable(build_sync_view(page, config, store))
         page.update()
 
     def show_settings() -> None:
-        body.content = build_settings_view(page, config, store, on_saved=show_sync)
+        body.content = _scrollable(
+            build_settings_view(page, config, store, on_saved=show_sync)
+        )
         page.update()
 
     page.appbar = ft.AppBar(

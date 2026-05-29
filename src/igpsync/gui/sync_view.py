@@ -15,7 +15,7 @@ def build_sync_view(
     store: secrets_module.SecretStore,
 ) -> ft.Control:
     progress = ft.ProgressBar(visible=False)
-    log = ft.ListView(expand=True, spacing=2, auto_scroll=True, height=260)
+    log = ft.ListView(spacing=2, auto_scroll=True, height=260)
 
     sync_button = ft.FilledButton(
         "Sync activities",
