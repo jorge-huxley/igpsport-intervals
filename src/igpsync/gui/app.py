@@ -9,6 +9,7 @@ from pathlib import Path
 import flet as ft
 from flet_secure_storage import SecureStorage
 
+from .. import __version__
 from .. import config as config_module
 from .. import secrets as secrets_module
 from .settings_view import build_settings_view
@@ -63,6 +64,28 @@ async def _app(page: ft.Page) -> None:
         )
         page.update()
 
+    def show_about(_: ft.ControlEvent | None = None) -> None:
+        page.show_dialog(
+            ft.AlertDialog(
+                title=ft.Text("About"),
+                content=ft.Column(
+                    tight=True,
+                    spacing=6,
+                    controls=[
+                        ft.Text("iGPSPORT → intervals.icu", weight=ft.FontWeight.BOLD),
+                        ft.Text(f"Version {__version__}"),
+                    ],
+                ),
+                actions=[
+                    ft.TextButton(
+                        "GitHub",
+                        url="https://github.com/jorge-huxley/igpsport-intervals",
+                    ),
+                    ft.TextButton("Close", on_click=lambda _: page.pop_dialog()),
+                ],
+            )
+        )
+
     page.appbar = ft.AppBar(
         title=ft.Text("iGPSPORT → intervals.icu"),
         center_title=False,
@@ -70,6 +93,7 @@ async def _app(page: ft.Page) -> None:
         actions=[
             ft.IconButton(ft.Icons.SYNC, tooltip="Sync", on_click=show_sync),
             ft.IconButton(ft.Icons.SETTINGS, tooltip="Settings", on_click=show_settings),
+            ft.IconButton(ft.Icons.INFO_OUTLINE, tooltip="About", on_click=show_about),
         ],
     )
 

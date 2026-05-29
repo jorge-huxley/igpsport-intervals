@@ -1,6 +1,8 @@
 [project]
 name = "igpsport-intervals"
-version = "0.1.0"
+# Placeholder. The real version comes from the git tag, injected by CI at build
+# time (see .github/workflows/release.yml). Local/dev builds report 0.0.0+dev.
+version = "0.0.0"
 description = "Export cycling activities from iGPSPORT and upload them to intervals.icu"
 readme = "README.md"
 license = "MIT"
