@@ -13,9 +13,14 @@ uv sync                 # install/lock dependencies into .venv
 uv run main.py          # launch the GUI (default)
 uv run main.py --cli    # run the headless sync (original behavior)
 uv run flet build windows   # build the distributable Windows .exe (build/windows/)
+uv run pytest               # run the test suite
 ```
 
-`flet build apk` / `flet build ipa` target Android/iOS from the same code. There are no tests, linters, or build steps beyond the above.
+`flet build apk` / `flet build ipa` target Android/iOS from the same code.
+
+## Tests
+
+`pytest` suite under `tests/`, run with `uv run pytest` (also runs in CI on every push/PR via `.github/workflows/test.yml`). Tests are offline: leaf HTTP helpers are tested by faking `core.requests`, and `sync()` is tested by monkeypatching the leaf functions it calls (see the `stub_sync` fixture in `tests/test_core.py`). No network, no real credentials. Config tests redirect `config.CONFIG_PATH` to a tmp dir. `pythonpath = ["src"]` is set in pyproject so imports work without installing.
 
 ## Architecture — three layers (the key design)
 

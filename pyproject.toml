@@ -20,6 +20,13 @@ igpsync = "igpsync.cli:main"
 [project.gui-scripts]
 igpsync-gui = "igpsync.gui.app:main"
 
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
