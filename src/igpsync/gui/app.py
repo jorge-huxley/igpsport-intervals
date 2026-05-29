@@ -66,8 +66,10 @@ async def _app(page: ft.Page) -> None:
         )
         page.update()
 
-    def open_releases(_: ft.ControlEvent) -> None:
-        page.launch_url(RELEASES_PAGE)
+    async def open_releases(_: ft.ControlEvent) -> None:
+        # page.launch_url is a coroutine in Flet 0.85 — it must be awaited,
+        # otherwise the "View" button silently does nothing.
+        await page.launch_url(RELEASES_PAGE)
 
     def notify_update(latest: str | None, *, quiet_when_current: bool) -> None:
         # Must run on the event loop (not a worker thread) so the snackbar's
