@@ -29,6 +29,8 @@ class AppConfig:
     igp_user: str = ""
     max_activities: int = 5
     download_dir: str = field(default_factory=_default_download_dir)
+    # Remove each .fit file once it has been uploaded to intervals.icu.
+    delete_after_upload: bool = True
     # Step toggles (advanced). The GUI's one-click sync sets these for the user.
     step_list_activities: bool = True
     step_get_download_url: bool = True

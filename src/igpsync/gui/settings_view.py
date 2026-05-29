@@ -48,6 +48,11 @@ def build_settings_view(
         width=220,
     )
 
+    delete_after_upload = ft.Switch(
+        label="Delete downloaded files after upload",
+        value=config.delete_after_upload,
+    )
+
     def save(_: ft.ControlEvent) -> None:
         if not igp_user.value or not igp_password.value:
             page.show_dialog(ft.SnackBar(ft.Text("iGPSPORT email and password are required.")))
@@ -59,6 +64,7 @@ def build_settings_view(
         except (TypeError, ValueError):
             config.max_activities = 5
             max_activities.value = "5"
+        config.delete_after_upload = delete_after_upload.value
         config_module.save(config)
 
         store.set(secrets_module.IGP_PASSWORD, igp_password.value)
@@ -87,6 +93,7 @@ def build_settings_view(
                     igp_password,
                     api_key,
                     max_activities,
+                    delete_after_upload,
                     ft.FilledButton(
                         "Save",
                         icon=ft.Icons.SAVE,

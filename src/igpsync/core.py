@@ -153,6 +153,7 @@ class SyncConfig:
     intervals_api_key: str | None
     max_activities: int = 5
     download_dir: Path = Path("downloads")
+    delete_after_upload: bool = True
     list_activities: bool = True
     get_download_url: bool = False
     download_fit: bool = False
@@ -212,6 +213,9 @@ def sync(config: SyncConfig, progress: Progress | None = None) -> SyncResult:
         if upload_to_intervals(fit_path, act.title, act.ride_id, config.intervals_api_key):
             report(f"✓ Uploaded {act.ride_id}: {act.title}")
             result.uploaded += 1
+            if config.delete_after_upload:
+                fit_path.unlink(missing_ok=True)
+                report(f"  Removed local file {fit_path.name}")
         else:
             report(f"✗ Failed to upload {act.ride_id}.")
             result.failed += 1
