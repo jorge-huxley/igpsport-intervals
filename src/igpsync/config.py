@@ -30,7 +30,7 @@ class AppConfig:
     download_dir: str = field(default_factory=_default_download_dir)
     # Remove each .fit file once it has been uploaded to intervals.icu.
     delete_after_upload: bool = True
-    # Re-download/re-upload activities even if they are already on intervals.icu.
+    # Re-download/re-upload activities even if already on intervals.icu or Dropbox.
     force_resync: bool = False
     # intervals.icu sport set on uploaded activities ("" = leave as uploaded).
     activity_type: str = ""
