@@ -8,11 +8,53 @@ from pathlib import Path
 import pytest
 
 from intervalssync.bryton import core
-from intervalssync.bryton.ddp import BrytonSession
+from intervalssync.bryton.ddp import BrytonSession, _is_deleted_activity
 
 
 def test_external_id_for():
     assert core.external_id_for("abc123") == "bryton_abc123"
+
+
+@pytest.mark.parametrize(
+    "fields,deleted",
+    [
+        ({"name": "Morning ride", "local_start_time": 1}, False),
+        ({"_deleted": True, "name": "Ride"}, True),
+        ({"name": "_deleted", "local_start_time": 0}, True),
+    ],
+)
+def test_is_deleted_activity(fields, deleted):
+    assert _is_deleted_activity(fields) is deleted
+
+
+def test_sync_ignores_deleted_activities(monkeypatch, tmp_path):
+    session = BrytonSession(user_id="u1", auth_token="tok")
+    activities = [
+        {"_id": "gone", "name": "_deleted", "local_start_time": 0},
+        {"_id": "act2", "name": "Morning ride", "local_start_time": 1_700_000_000},
+    ]
+
+    monkeypatch.setattr(core, "login", lambda *a, **k: session)
+    monkeypatch.setattr(core, "list_activities", lambda *a, **k: [activities[1]])
+    monkeypatch.setattr(core, "fetch_uploaded_external_ids", lambda *a, **k: set())
+
+    def fake_download(activity_id, sess, dest_path, **kwargs):
+        dest_path.write_bytes(b"\x00" * 12 + b".FIT" + b"\x00" * 4)
+        return dest_path
+
+    monkeypatch.setattr(core, "download_fit_to_path", fake_download)
+    monkeypatch.setattr(core, "upload_fit_file", lambda *a, **k: "icu-1")
+
+    cfg = core.SyncConfig(
+        bryton_email="a@b.com",
+        bryton_password="pw",
+        intervals_api_key="key",
+        download_dir=tmp_path,
+    )
+    result = core.sync(cfg)
+    assert result.listed == 1
+    assert result.downloaded == 1
+    assert result.failed == 0
 
 
 def test_sync_skips_already_uploaded(monkeypatch, tmp_path):

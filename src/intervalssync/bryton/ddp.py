@@ -89,6 +89,10 @@ class _DDPClient:
             return
         if kind == "nosub":
             raise BrytonDDPError(f"Subscription failed: {msg.get('id')} {msg}")
+        if kind == "removed":
+            coll = msg["collection"]
+            self._collections.get(coll, {}).pop(msg["id"], None)
+            return
         if kind == "changed":
             coll = msg["collection"]
             doc = self._collections.setdefault(coll, {}).setdefault(msg["id"], {})
@@ -179,6 +183,13 @@ def login(email: str, password: str, *, host: str = DEFAULT_HOST) -> BrytonSessi
     )
 
 
+def _is_deleted_activity(fields: dict[str, Any]) -> bool:
+    if fields.get("_deleted"):
+        return True
+    label = fields.get("name") or fields.get("title") or ""
+    return label == "_deleted"
+
+
 def list_activities(
     session: BrytonSession,
     *,
@@ -191,7 +202,11 @@ def list_activities(
         client.call("login", [{"resume": session.auth_token}])
         client.subscribe("activityList", [])
         docs = client._collections.get("userActivities", {})
-        activities = [{"_id": doc_id, **fields} for doc_id, fields in docs.items()]
+        activities = [
+            {"_id": doc_id, **fields}
+            for doc_id, fields in docs.items()
+            if not _is_deleted_activity(fields)
+        ]
         activities.sort(key=lambda a: a.get("local_start_time", 0), reverse=True)
         return activities[:limit]
     finally:
