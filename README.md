@@ -46,20 +46,7 @@ isn't on the Play Store, so the "unknown source" prompt is expected.
 
 ## CLI & automation (AI agents)
 
-The `igpsync` CLI runs the same activity sync without the GUI — useful for
-scripts and automation agents (e.g. [Hermes](https://hermes-agent.nousresearch.com))
-that detect new rides and need a reliable upload step.
-
-Requires [uv](https://docs.astral.sh/uv/) and a clone of this repo:
-
-```bash
-uv sync
-uv run igpsync check          # verify credentials in .env
-uv run igpsync sync --json    # sync; result on stdout, progress on stderr
-```
-
-Credentials go in a `.env` file (not the GUI secure vault). Full setup,
-Hermes profile paths, flags, and JSON schema: [Agent / headless sync](docs/AGENT.md).
+Headless `igpsync` CLI for scripts and AI agents ([Hermes](https://hermes-agent.nousresearch.com), [OpenClaw](https://openclaw.ai/)) — same sync as the GUI, JSON on stdout, credentials in `.env`. Setup, flags, and invocation: [Agent / headless sync](docs/AGENT.md).
 
 ## Run from source
 
