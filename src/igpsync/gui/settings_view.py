@@ -65,6 +65,15 @@ async def build_settings_view(
         width=220,
     )
 
+    workout_days_ahead = ft.TextField(
+        label="Workout upload window (days)",
+        value=str(config.workout_days_ahead),
+        prefix_icon=ft.Icons.CALENDAR_MONTH,
+        keyboard_type=ft.KeyboardType.NUMBER,
+        width=220,
+        helper="Planned workouts from intervals.icu; 1 = today only",
+    )
+
     activity_type = ft.Dropdown(
         label="Activity type on intervals.icu",
         value=config.activity_type,
@@ -331,6 +340,11 @@ async def build_settings_view(
         except (TypeError, ValueError):
             config.max_activities = 5
             max_activities.value = "5"
+        try:
+            config.workout_days_ahead = max(1, int(workout_days_ahead.value))
+        except (TypeError, ValueError):
+            config.workout_days_ahead = 1
+            workout_days_ahead.value = "1"
         config.delete_after_upload = delete_after_upload.value
         config.force_resync = force_resync.value
         config.activity_type = activity_type.value or ""
@@ -397,6 +411,7 @@ async def build_settings_view(
                     igp_password,
                     api_key,
                     max_activities,
+                    workout_days_ahead,
                     activity_type,
                     delete_after_upload,
                     force_resync,
