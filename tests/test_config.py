@@ -14,6 +14,8 @@ def test_defaults():
     assert cfg.upload_dropbox is False
     assert cfg.dropbox_folder == "/igpsport-fit"
     assert cfg.dropbox_date_filenames is True
+    assert cfg.uploaded_workouts == {}
+    assert cfg.workout_days_ahead == 1
 
 
 def test_save_and_load_roundtrip(tmp_path, monkeypatch):
