@@ -20,6 +20,16 @@ from . import theme
 from .system import open_folder
 
 
+def _developer_step_controls(config: config_module.AppConfig) -> list[ft.Control]:
+    """Pipeline step toggles — not shown in Settings; kept for local/dev use."""
+    return [
+        ft.Switch(label="List activities", value=config.step_list_activities),
+        ft.Switch(label="Resolve download URLs", value=config.step_get_download_url),
+        ft.Switch(label="Download .fit files", value=config.step_download_fit),
+        ft.Switch(label="Upload to intervals.icu", value=config.step_upload_intervals),
+    ]
+
+
 async def build_settings_view(
     page: ft.Page,
     config: config_module.AppConfig,
@@ -383,55 +393,6 @@ async def build_settings_view(
         content=dropbox_options,
     )
 
-    step_list = ft.Switch(
-        label="List activities",
-        value=config.step_list_activities,
-        active_color=colors["accent"],
-    )
-    step_url = ft.Switch(
-        label="Resolve download URLs",
-        value=config.step_get_download_url,
-        active_color=colors["accent"],
-    )
-    step_download = ft.Switch(
-        label="Download .fit files",
-        value=config.step_download_fit,
-        active_color=colors["accent"],
-    )
-    step_upload = ft.Switch(
-        label="Upload to intervals.icu",
-        value=config.step_upload_intervals,
-        active_color=colors["accent"],
-    )
-
-    developer_options = ft.ExpansionTile(
-        title=ft.Text("Developer options", weight=ft.FontWeight.W_500),
-        subtitle=ft.Text("Pipeline steps", size=12, color=colors["text_muted"]),
-        leading=ft.Icon(ft.Icons.CODE_OUTLINED, color=colors["text_muted"]),
-        affinity=ft.TileAffinity.LEADING,
-        expanded=False,
-        controls=[
-            ft.Container(
-                padding=ft.Padding(theme.SPACE_MD, 0, theme.SPACE_MD, theme.SPACE_SM),
-                content=ft.Column(
-                    spacing=theme.SPACE_XS,
-                    controls=[
-                        ft.Text(
-                            "Choose which steps run during a sync. Each step depends "
-                            "on the ones above it.",
-                            size=12,
-                            color=colors["text_muted"],
-                        ),
-                        step_list,
-                        step_url,
-                        step_download,
-                        step_upload,
-                    ],
-                ),
-            )
-        ],
-    )
-
     def update_source_visibility(_: ft.ControlEvent | None = None) -> None:
         igp_credentials.visible = bool(enable_igpsport.value)
         workout_sync_section.visible = bool(enable_igpsport.value or enable_bryton.value)
@@ -494,10 +455,6 @@ async def build_settings_view(
         config.delete_after_upload = delete_after_upload.value
         config.force_resync = force_resync.value
         config.activity_type = activity_type.value or ""
-        config.step_list_activities = step_list.value
-        config.step_get_download_url = step_url.value
-        config.step_download_fit = step_download.value
-        config.step_upload_intervals = step_upload.value
         config.dropbox_folder = dropbox_folder.value.strip() or DEFAULT_DROPBOX_FOLDER
         config.dropbox_date_filenames = bool(dropbox_date_filenames_switch.value)
         config.upload_dropbox = bool(upload_dropbox.value)
@@ -598,12 +555,6 @@ async def build_settings_view(
                 download_folder_row,
             ),
             dropbox_section,
-            ft.Container(
-                bgcolor=colors["surface"],
-                border=ft.Border.all(1, colors["border"]),
-                border_radius=theme.RADIUS_MD,
-                content=developer_options,
-            ),
             save_button,
             ft.Container(height=theme.SPACE_MD),
         ],
