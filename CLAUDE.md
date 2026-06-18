@@ -10,7 +10,7 @@ A cross-platform app that syncs cycling activities to **intervals.icu** from **i
 
 ```bash
 uv sync
-uv run main.py
+uv run intervalssync-gui
 uv run intervalssync sync                          # iGPSPORT (default)
 uv run intervalssync sync --source bryton          # Bryton Active
 uv run intervalssync upload-workouts --json        # intervals.icu → iGPSPORT

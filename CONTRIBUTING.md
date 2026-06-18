@@ -19,7 +19,7 @@ uv sync          # installs runtime + dev dependencies into .venv
 Run the app while developing:
 
 ```bash
-uv run main.py          # launch the GUI
+uv run intervalssync-gui          # launch the GUI
 ```
 
 Headless sync and agent integration: [docs/AGENT.md](docs/AGENT.md).
@@ -67,7 +67,7 @@ reusing the production one:
 
    ```bash
    cp .env.example .env        # then edit .env and paste your app key
-   uv run --env-file .env main.py
+   uv run --env-file .env intervalssync-gui
    ```
 
 `.env` is gitignored. The app key for a PKCE public client isn't a secret (it
