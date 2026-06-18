@@ -48,7 +48,7 @@ class AppConfig:
     # Optional secondary upload target. Off by default because most users only
     # want intervals.icu.
     upload_dropbox: bool = False
-    dropbox_folder: str = "/igpsport-fit"
+    dropbox_folder: str = "/intervalssync-fit"
     dropbox_date_filenames: bool = True
     # Planned workouts: intervals.icu event id → iGPSPORT workoutId.
     uploaded_workouts: dict[str, int] = field(default_factory=dict)

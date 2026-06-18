@@ -1,11 +1,11 @@
 # intervals.icu Sync
 
-[![License: MIT](https://img.shields.io/github/license/jorge-huxley/igpsport-intervals)](LICENSE)
+[![License: MIT](https://img.shields.io/github/license/jorge-huxley/intervalssync)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.13%2B-blue)](https://www.python.org/downloads/)
-[![Tests](https://github.com/jorge-huxley/igpsport-intervals/actions/workflows/test.yml/badge.svg)](https://github.com/jorge-huxley/igpsport-intervals/actions/workflows/test.yml)
-[![GitHub release](https://img.shields.io/github/v/release/jorge-huxley/igpsport-intervals)](https://github.com/jorge-huxley/igpsport-intervals/releases)
+[![Tests](https://github.com/jorge-huxley/intervalssync/actions/workflows/test.yml/badge.svg)](https://github.com/jorge-huxley/intervalssync/actions/workflows/test.yml)
+[![GitHub release](https://img.shields.io/github/v/release/jorge-huxley/intervalssync)](https://github.com/jorge-huxley/intervalssync/releases)
 [![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20Android-lightgrey)](#download--run-windows)
-[![Stars](https://img.shields.io/github/stars/jorge-huxley/igpsport-intervals?label=stars)](https://github.com/jorge-huxley/igpsport-intervals/stargazers)
+[![Stars](https://img.shields.io/github/stars/jorge-huxley/intervalssync?label=stars)](https://github.com/jorge-huxley/intervalssync/stargazers)
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jorge_huxley)
 
 A small, friendly app that syncs your cycling activities to **intervals.icu** from

@@ -258,7 +258,7 @@ def _config(tmp_path, **overrides):
         download_fit=True,
         upload_intervals=True,
         upload_dropbox=False,
-        dropbox_folder="/igpsport-fit",
+        dropbox_folder="/intervalssync-fit",
         dropbox_date_filenames=True,
     )
     base.update(overrides)
@@ -326,7 +326,7 @@ def test_sync_uploads_to_dropbox_after_intervals(stub_sync):
         "ride-0-2026-05-26-18-47-06.fit",
         "ride-0-2026-05-24-08-27-17.fit",
     ]
-    assert stub_sync["dropbox"][0][1:4] == ("dbx-refresh", "dbx-app", "/igpsport-fit")
+    assert stub_sync["dropbox"][0][1:4] == ("dbx-refresh", "dbx-app", "/intervalssync-fit")
     assert stub_sync["dropbox"][0][4] == "igpsport_1.fit"
 
 

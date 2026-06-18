@@ -16,7 +16,7 @@ def test_defaults():
     assert cfg.activity_type == ""  # "" = leave the uploaded sport untouched
     assert cfg.max_activities == 5
     assert cfg.upload_dropbox is False
-    assert cfg.dropbox_folder == "/igpsport-fit"
+    assert cfg.dropbox_folder == "/intervalssync-fit"
     assert cfg.dropbox_date_filenames is True
     assert cfg.uploaded_workouts == {}
     assert cfg.uploaded_bryton_workouts == {}

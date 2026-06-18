@@ -150,7 +150,7 @@ async def _app(page: ft.Page) -> None:
                     ft.TextButton("Check for updates", on_click=check_updates_now),
                     ft.TextButton(
                         "GitHub",
-                        url="https://github.com/jorge-huxley/igpsport-intervals",
+                        url="https://github.com/jorge-huxley/intervalssync",
                     ),
                     ft.TextButton("Close", on_click=lambda _: page.pop_dialog()),
                 ],
