@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in improving **intervalssync**! This guide covers how to
+Thanks for your interest in improving **Intervals Sync**! This guide covers how to
 set up the project, make a change, and open a pull request.
 
 ## Prerequisites

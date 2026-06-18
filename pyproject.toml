@@ -42,7 +42,7 @@ packages = ["src/intervalssync"]
 
 [tool.flet]
 # Used by `flet build`. The product name shown to end users.
-product = "intervals.icu Sync"
+product = "Intervals Sync"
 company = "intervalssync"
 # Reverse-DNS app identifier (Android package / iOS bundle id). No hyphens
 # allowed in the segments. Change if you fork.

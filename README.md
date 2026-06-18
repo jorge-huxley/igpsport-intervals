@@ -1,4 +1,4 @@
-# intervals.icu Sync
+# Intervals Sync
 
 [![License: MIT](https://img.shields.io/github/license/jorge-huxley/intervalssync)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.13%2B-blue)](https://www.python.org/downloads/)
@@ -8,7 +8,7 @@
 [![Stars](https://img.shields.io/github/stars/jorge-huxley/intervalssync?label=stars)](https://github.com/jorge-huxley/intervalssync/stargazers)
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jorge_huxley)
 
-A small, friendly app that syncs your cycling activities to **intervals.icu** from
+**Intervals Sync** is a small, friendly app that syncs your cycling activities to **intervals.icu** from
 **iGPSPORT** or **Bryton Active**. Enter your credentials once, press **Sync**, and
 your latest rides land on intervals.icu. You can also push planned workouts from
 intervals.icu to **iGPSPORT** or **Bryton Active**. Free and open source, for **Windows** and **Android**.
