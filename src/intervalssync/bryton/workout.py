@@ -14,10 +14,10 @@ from typing import Any, Callable
 
 import requests
 
-from ..igpsport.workout import fetch_calendar_workouts
+from .. import intervals_icu
 from .ddp import WEB_HOST, BrytonSession, call_method, login
 from .exceptions import BrytonSyncError
-from .fit_encode import icu_workout_doc_to_bryton_fit
+from .fit_encode import bryton_hr_uses_mhr, icu_workout_doc_to_bryton_fit
 
 _CYCLING_TYPES = frozenset(
     {
@@ -35,6 +35,27 @@ _CYCLING_TYPES = frozenset(
 )
 
 Progress = Callable[[str], None]
+
+
+def _steps_target_hr(steps: Any) -> bool:
+    if not isinstance(steps, list):
+        return False
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        if step.get("hr") is not None:
+            return True
+        if _steps_target_hr(step.get("steps")):
+            return True
+    return False
+
+
+def workout_doc_targets_hr(workout_doc: dict[str, Any]) -> bool:
+    """Return True when intervals.icu workout_doc uses heart-rate targets."""
+    target = str(workout_doc.get("target") or "").upper()
+    if target == "HR":
+        return True
+    return _steps_target_hr(workout_doc.get("steps"))
 
 
 def _noop(_message: str) -> None:
@@ -224,8 +245,14 @@ def upload_workouts(
     report(f"Found {len(live_ids)} custom workouts on Bryton.")
 
     report("Fetching planned workouts from intervals.icu…")
+    intervals_http = requests.Session()
     try:
-        calendar = fetch_calendar_workouts(config.intervals_api_key, oldest, newest)
+        calendar = intervals_icu.fetch_calendar_workouts(
+            config.intervals_api_key,
+            oldest,
+            newest,
+            http=intervals_http,
+        )
     except requests.RequestException as exc:
         raise BrytonSyncError(f"Could not fetch intervals.icu workouts: {exc}") from exc
 
@@ -233,6 +260,8 @@ def upload_workouts(
     report(f"Found {len(calendar)} planned workouts.")
 
     http = requests.Session()
+    cached_max_hr: float | None = None
+    max_hr_fetched = False
     for workout in calendar:
         event_key = str(workout.event_id)
 
@@ -254,7 +283,27 @@ def upload_workouts(
 
         ids_before = set(live_ids)
 
-        fit_bytes = icu_workout_doc_to_bryton_fit(workout.name, workout.workout_doc)
+        encode_max_hr: float | None = None
+        if bryton_hr_uses_mhr() and workout_doc_targets_hr(workout.workout_doc):
+            if not max_hr_fetched:
+                try:
+                    cached_max_hr = intervals_icu.fetch_sport_settings_max_hr(
+                        config.intervals_api_key,
+                        workout.activity_type,
+                        http=intervals_http,
+                    )
+                except requests.RequestException as exc:
+                    raise BrytonSyncError(
+                        f"Could not fetch intervals.icu max HR for {workout.activity_type}: {exc}"
+                    ) from exc
+                max_hr_fetched = True
+            encode_max_hr = cached_max_hr
+
+        fit_bytes = icu_workout_doc_to_bryton_fit(
+            workout.name,
+            workout.workout_doc,
+            max_hr=encode_max_hr,
+        )
         if fit_bytes is None:
             report(
                 f"⚠ Skipping {workout.name} — no structured steps "

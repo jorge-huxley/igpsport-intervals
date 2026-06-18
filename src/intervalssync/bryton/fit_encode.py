@@ -27,6 +27,10 @@ BRYTON_FTP_OFFSET = 100_000
 _BRYTON_HR_TARGET: Literal["mhr", "lthr"] = "mhr"
 
 
+def bryton_hr_uses_mhr() -> bool:
+    return _BRYTON_HR_TARGET == "mhr"
+
+
 def _num(value: Any) -> float | None:
     if value is None:
         return None
@@ -315,14 +319,20 @@ def _flatten_steps(
     return out or None
 
 
-def icu_workout_doc_to_bryton_fit(name: str, workout_doc: dict[str, Any]) -> bytes | None:
+def icu_workout_doc_to_bryton_fit(
+    name: str,
+    workout_doc: dict[str, Any],
+    *,
+    max_hr: float | None = None,
+) -> bytes | None:
     """Build a Bryton-compatible workout FIT file from intervals.icu workout_doc."""
     raw_steps = workout_doc.get("steps")
     if not isinstance(raw_steps, list) or not raw_steps:
         return None
 
     lthr = _num(workout_doc.get("lthr"))
-    max_hr = _num(workout_doc.get("max_hr"))
+    if max_hr is None:
+        max_hr = _num(workout_doc.get("max_hr"))
     ftp = _num(workout_doc.get("ftp"))
     steps = _flatten_steps(raw_steps, ftp=ftp, lthr=lthr, max_hr=max_hr)
     if not steps:

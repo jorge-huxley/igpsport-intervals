@@ -8,6 +8,7 @@ from intervalssync.bryton.fit_encode import (
     BRYTON_FTP_OFFSET,
     TARGET_FTP,
     TARGET_LTHR,
+    TARGET_MHR,
     icu_workout_doc_to_bryton_fit,
 )
 
@@ -84,7 +85,58 @@ def test_encode_power_value_with_resolved_watts_range():
     assert step["custom_target_value_high"] == 92 + BRYTON_FTP_OFFSET
 
 
-def test_encode_hr_steps_as_pct_lthr():
+def test_encode_hr_steps_as_pct_mhr():
+    doc = {
+        "max_hr": 196,
+        "target": "HR",
+        "steps": [
+            {
+                "duration": 600,
+                "hr": {"value": 1, "units": "hr_zone"},
+                "_hr": {"start": 96.0, "end": 120.0},
+            },
+            {
+                "reps": 10,
+                "steps": [
+                    {
+                        "duration": 120,
+                        "hr": {"value": 4, "units": "hr_zone"},
+                        "_hr": {"start": 167.0, "end": 185.0},
+                    },
+                    {
+                        "duration": 180,
+                        "hr": {"value": 3, "units": "hr_zone"},
+                        "_hr": {"start": 147.0, "end": 166.0},
+                    },
+                ],
+            },
+            {
+                "duration": 600,
+                "hr": {"value": 1, "units": "hr_zone"},
+                "_hr": {"start": 96.0, "end": 120.0},
+            },
+        ],
+    }
+    fit_bytes = icu_workout_doc_to_bryton_fit("HR test", doc)
+    assert fit_bytes is not None
+    steps = _decode(fit_bytes)["workout_step_mesgs"]
+    timed = [s for s in steps if s.get("duration_type") == "time"]
+    assert len(timed) == 4
+    assert timed[0]["target_type"] == TARGET_MHR
+    assert timed[0]["custom_target_value_low"] == 49 + BRYTON_FTP_OFFSET
+    assert timed[0]["custom_target_value_high"] == 61 + BRYTON_FTP_OFFSET
+    assert timed[1]["custom_target_value_low"] == 85 + BRYTON_FTP_OFFSET
+    assert timed[1]["custom_target_value_high"] == 94 + BRYTON_FTP_OFFSET
+    assert timed[2]["custom_target_value_low"] == 75 + BRYTON_FTP_OFFSET
+    assert timed[2]["custom_target_value_high"] == 85 + BRYTON_FTP_OFFSET
+    assert timed[3]["custom_target_value_low"] == 49 + BRYTON_FTP_OFFSET
+    assert timed[3]["custom_target_value_high"] == 61 + BRYTON_FTP_OFFSET
+
+
+def test_encode_hr_steps_as_pct_lthr(monkeypatch):
+    import intervalssync.bryton.fit_encode as fit_encode
+
+    monkeypatch.setattr(fit_encode, "_BRYTON_HR_TARGET", "lthr")
     doc = {
         "lthr": 176,
         "target": "HR",

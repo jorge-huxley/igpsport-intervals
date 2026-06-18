@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from intervalssync import intervals_icu
 from intervalssync.bryton import workout
 from intervalssync.bryton.ddp import BrytonSession
 
@@ -17,6 +18,19 @@ class FakeResponse:
     def raise_for_status(self):
         if not self.ok:
             raise workout.requests.HTTPError(f"HTTP {self.status_code}")
+
+
+def test_workout_doc_targets_hr_by_target_field():
+    assert workout.workout_doc_targets_hr({"target": "HR", "steps": []}) is True
+    assert workout.workout_doc_targets_hr({"target": "POWER", "steps": []}) is False
+
+
+def test_workout_doc_targets_hr_by_step_hr_field():
+    doc = {
+        "target": "POWER",
+        "steps": [{"duration": 300, "hr": {"value": 2, "units": "hr_zone"}}],
+    }
+    assert workout.workout_doc_targets_hr(doc) is True
 
 
 def test_sanitize_workout_filename():
@@ -122,7 +136,7 @@ def test_upload_workouts_skips_already_uploaded(monkeypatch):
 
     monkeypatch.setattr(workout, "web_login", lambda *a, **k: session)
     monkeypatch.setattr(workout, "_fetch_workout_library", lambda *a, **k: ({"stored"}, set()))
-    monkeypatch.setattr(workout, "fetch_calendar_workouts", lambda *a, **k: [CW()])
+    monkeypatch.setattr(intervals_icu, "fetch_calendar_workouts", lambda *a, **k: [CW()])
 
     cfg = workout.BrytonWorkoutUploadConfig(
         bryton_email="a@b.com",
@@ -149,7 +163,7 @@ def test_upload_workouts_reuploads_when_deleted_on_bryton(monkeypatch):
 
     monkeypatch.setattr(workout, "web_login", lambda *a, **k: session)
     monkeypatch.setattr(workout, "_fetch_workout_library", lambda *a, **k: (set(), set()))
-    monkeypatch.setattr(workout, "fetch_calendar_workouts", lambda *a, **k: [CW()])
+    monkeypatch.setattr(intervals_icu, "fetch_calendar_workouts", lambda *a, **k: [CW()])
     monkeypatch.setattr(workout, "icu_workout_doc_to_bryton_fit", lambda *a, **k: fit)
     monkeypatch.setattr(workout, "upload_workout_fit", lambda *a, **k: True)
 
@@ -178,7 +192,7 @@ def test_upload_workouts_uploads_new_workout(monkeypatch):
 
     monkeypatch.setattr(workout, "web_login", lambda *a, **k: session)
     monkeypatch.setattr(workout, "_fetch_workout_library", lambda *a, **k: (set(), set()))
-    monkeypatch.setattr(workout, "fetch_calendar_workouts", lambda *a, **k: [CW()])
+    monkeypatch.setattr(intervals_icu, "fetch_calendar_workouts", lambda *a, **k: [CW()])
     monkeypatch.setattr(workout, "icu_workout_doc_to_bryton_fit", lambda *a, **k: fit)
 
     calls: list[str] = []
@@ -206,3 +220,68 @@ def test_upload_workouts_uploads_new_workout(monkeypatch):
     result = workout.upload_workouts(cfg)
     assert result.uploaded == 1
     assert result.uploaded_map["11"] == "new-file-id"
+
+
+def test_upload_workouts_fetches_max_hr_only_for_hr_workouts(monkeypatch):
+    session = BrytonSession(user_id="u1", auth_token="tok", host="active.brytonsport.com")
+
+    class PowerWorkout:
+        event_id = 20
+        name = "Sweet Spot"
+        description = ""
+        activity_type = "Ride"
+        workout_doc = {
+            "target": "POWER",
+            "steps": [{"duration": 600, "power": {"value": 90, "units": "%ftp"}}],
+        }
+
+    class HrWorkout:
+        event_id = 21
+        name = "HR Endurance"
+        description = ""
+        activity_type = "Ride"
+        workout_doc = {
+            "target": "HR",
+            "steps": [
+                {
+                    "duration": 600,
+                    "hr": {"value": 2, "units": "hr_zone"},
+                    "_hr": {"start": 120.0, "end": 140.0},
+                }
+            ],
+        }
+
+    fit = _valid_fit_bytes()
+    fetch_calls: list[str] = []
+    encode_calls: list[float | None] = []
+
+    monkeypatch.setattr(workout, "web_login", lambda *a, **k: session)
+    monkeypatch.setattr(workout, "_fetch_workout_library", lambda *a, **k: (set(), set()))
+    monkeypatch.setattr(
+        intervals_icu,
+        "fetch_calendar_workouts",
+        lambda *a, **k: [PowerWorkout(), HrWorkout()],
+    )
+
+    def fake_fetch_max_hr(api_key, sport, *, http=None):
+        fetch_calls.append(sport)
+        return 193.0
+
+    monkeypatch.setattr(intervals_icu, "fetch_sport_settings_max_hr", fake_fetch_max_hr)
+
+    def fake_encode(name, workout_doc, *, max_hr=None):
+        encode_calls.append(max_hr)
+        return fit
+
+    monkeypatch.setattr(workout, "icu_workout_doc_to_bryton_fit", fake_encode)
+    monkeypatch.setattr(workout, "upload_workout_fit", lambda *a, **k: True)
+
+    cfg = workout.BrytonWorkoutUploadConfig(
+        bryton_email="a@b.com",
+        bryton_password="pw",
+        intervals_api_key="key",
+    )
+    result = workout.upload_workouts(cfg)
+    assert result.uploaded == 2
+    assert fetch_calls == ["Ride"]
+    assert encode_calls == [None, 193.0]

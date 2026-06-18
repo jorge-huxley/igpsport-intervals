@@ -36,7 +36,7 @@ src/intervalssync/
   intervals_icu.py, dropbox_client.py            # shared by sources
 ```
 
-- **`intervals_icu.py`** — shared upload, skip-existing (`external_id`), sport PUT.
+- **`intervals_icu.py`** — shared upload, skip-existing (`external_id`), sport PUT, calendar workout fetch, sport-settings lookup (`max_hr`).
 - **`igpsport/core.py`** — `sync(SyncConfig, progress)`: login → list → FIT URL → download → upload. `external_id`: `igpsport_{ride_id}`.
 - **`igpsport/workout.py`** — planned workouts intervals.icu → iGPSPORT.
 - **`bryton/ddp.py`** — Meteor DDP login + `activityList` subscription.
