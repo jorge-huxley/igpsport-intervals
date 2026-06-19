@@ -27,6 +27,12 @@
   Free and open source, for <strong>Windows</strong> and <strong>Android</strong>.
 </p>
 
+<p align="center">
+  <a href="https://github.com/jorge-huxley/intervalssync/releases/latest">Download</a> &middot;
+  <a href="docs/AGENT.md">CLI &amp; agents</a> &middot;
+  <a href="CONTRIBUTING.md">Contributing</a>
+</p>
+
 ---
 
 <br>
