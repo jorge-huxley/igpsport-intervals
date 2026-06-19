@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A cross-platform app that syncs cycling activities to **intervals.icu** from **iGPSPORT** or **Bryton Active**, and can upload planned workouts from intervals.icu back to iGPSPORT. It ships as a **Flet** GUI plus a headless **CLI** (`intervalssync`). Dependency management uses [uv](https://docs.astral.dev/uv/) (Python 3.13).
+**Intervals Sync** — a cross-platform app that syncs cycling activities to **intervals.icu** from **iGPSPORT** or **Bryton Active**, and can upload planned workouts from intervals.icu back to iGPSPORT. It ships as a **Flet** GUI (`intervalssync-gui`) plus a headless **CLI** (`intervalssync`). Dependency management uses [uv](https://docs.astral.dev/uv/) (Python 3.13).
 
 ## Commands
 
 ```bash
 uv sync
-uv run main.py
+uv run intervalssync-gui
 uv run intervalssync sync                          # iGPSPORT (default)
 uv run intervalssync sync --source bryton          # Bryton Active
 uv run intervalssync upload-workouts --json        # intervals.icu → iGPSPORT

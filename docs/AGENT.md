@@ -1,7 +1,8 @@
 # Agent / headless sync
 
-Use the `intervalssync` CLI to sync cycling activities to intervals.icu without
-the GUI. Sources: **iGPSPORT** (default) or **Bryton Active** (`--source bryton`).
+Use the `intervalssync` CLI (headless companion to **Intervals Sync**) to sync
+cycling activities to intervals.icu without the GUI. Sources: **iGPSPORT**
+(default) or **Bryton Active** (`--source bryton`).
 Also uploads planned workouts from intervals.icu to **iGPSPORT** or **Bryton Active**.
 
 ## Prerequisites
