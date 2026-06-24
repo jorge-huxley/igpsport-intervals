@@ -108,7 +108,7 @@ uv run --env-file .env intervalssync-gui
 ## Build the Windows executable
 
 ```bash
-uv run flet build windows
+uv run flet build windows --module-name intervalssync.gui.app
 ```
 
 The distributable lands in `build/windows/`. (Flet downloads the Flutter
