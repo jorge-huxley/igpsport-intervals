@@ -9,7 +9,7 @@ from pathlib import Path
 
 import flet as ft
 from flet_permission_handler import Permission, PermissionHandler, PermissionStatus
-from flet_secure_storage import MacOsOptions, SecureStorage
+from flet_secure_storage import SecureStorage
 
 from .. import __version__
 from . import config as config_module
@@ -63,12 +63,14 @@ def _supports_permission_handler(platform: ft.PagePlatform) -> bool:
     return platform in _PERMISSION_HANDLER_PLATFORMS
 
 
-def _secure_storage_for_platform(platform: ft.PagePlatform) -> SecureStorage:
+def _secret_store_for_platform(
+    platform: ft.PagePlatform,
+) -> tuple[secrets_module.SecretStore, SecureStorage | None]:
     if platform == ft.PagePlatform.MACOS:
-        return SecureStorage(
-            macos_options=MacOsOptions(uses_data_protection_keychain=False)
-        )
-    return SecureStorage()
+        return secrets_module.MacOSKeychainStore(), None
+
+    storage = SecureStorage()
+    return secrets_module.FletSecureStorage(storage), storage
 
 
 async def _app(page: ft.Page) -> None:
@@ -86,12 +88,12 @@ async def _app(page: ft.Page) -> None:
 
     config = config_module.load()
 
-    storage = _secure_storage_for_platform(page.platform)
+    store, storage = _secret_store_for_platform(page.platform)
     perms = PermissionHandler() if _supports_permission_handler(page.platform) else None
-    page.services.append(storage)
+    if storage is not None:
+        page.services.append(storage)
     if perms is not None:
         page.services.append(perms)
-    store = secrets_module.FletSecureStorage(storage)
 
     def _private_download_dir() -> str:
         base = os.getenv("FLET_APP_STORAGE_DATA") or tempfile.gettempdir()

@@ -3,6 +3,7 @@ from __future__ import annotations
 import flet as ft
 
 from intervalssync.gui import app
+from intervalssync.gui import secrets as secrets_module
 
 
 def test_permission_handler_skips_unsupported_desktop_platforms():
@@ -20,13 +21,15 @@ def test_permission_handler_allows_supported_platforms():
         assert app._supports_permission_handler(web)
 
 
-def test_secure_storage_uses_login_keychain_on_macos():
-    storage = app._secure_storage_for_platform(ft.PagePlatform.MACOS)
+def test_secret_store_uses_native_keychain_on_macos():
+    store, storage = app._secret_store_for_platform(ft.PagePlatform.MACOS)
 
-    assert storage.macos_options.uses_data_protection_keychain is False
+    assert isinstance(store, secrets_module.MacOSKeychainStore)
+    assert storage is None
 
 
-def test_secure_storage_keeps_default_keychain_options_elsewhere():
-    storage = app._secure_storage_for_platform(ft.PagePlatform.WINDOWS)
+def test_secret_store_uses_flet_secure_storage_elsewhere():
+    store, storage = app._secret_store_for_platform(ft.PagePlatform.WINDOWS)
 
-    assert storage.macos_options.uses_data_protection_keychain is True
+    assert isinstance(store, secrets_module.FletSecureStorage)
+    assert storage is not None
